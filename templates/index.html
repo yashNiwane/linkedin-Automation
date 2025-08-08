@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Upload Leads</div>
+      <div class="card-body">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <input class="form-control" type="file" name="file" accept=".xlsx,.xls" required>
+          </div>
+          <button class="btn btn-primary" type="submit">Upload</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Actions</div>
+      <div class="card-body d-flex gap-2">
+        <form action="/send_first_messages" method="post">
+          <button class="btn btn-success" type="submit">Send First Messages</button>
+        </form>
+        <a class="btn btn-secondary" href="/export">Export to Excel</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">LinkedIn Login (store session)</div>
+      <div class="card-body">
+        <form action="/linkedin_login" method="post">
+          <div class="row g-2">
+            <div class="col">
+              <input name="username" class="form-control" placeholder="LinkedIn Email" required>
+            </div>
+            <div class="col">
+              <input name="password" type="password" class="form-control" placeholder="Password" required>
+            </div>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-outline-dark" type="submit">Login & Save Session</button>
+            <small class="text-muted ms-2">If MFA prompts, set headless to false and login once.</small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Bot Activity (live)</div>
+      <div class="card-body" style="height: 260px; overflow:auto;">
+        <ul id="log" class="list-unstyled mb-0" style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">Leads</div>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Company</th>
+          <th>Profile</th>
+          <th>Message Sent</th>
+          <th>Reply</th>
+          <th>Interest</th>
+          <th>Follow-up</th>
+          <th>Last Contact</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+        <tr>
+          <td>{{ lead.name }}</td>
+          <td>{{ lead.role or '-' }}</td>
+          <td>{{ lead.company or '-' }}</td>
+          <td><a href="{{ lead.profile_url }}" target="_blank">Profile</a></td>
+          <td>
+            {% if lead.message_sent %}
+              <span class="badge bg-success">Yes</span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </td>
+          <td>{{ lead.reply_status }}</td>
+          <td>{{ lead.interest_level }}</td>
+          <td>
+            {% if lead.follow_up_taken %}
+              <span class="badge bg-info">Yes</span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </td>
+          <td>{{ lead.last_contact_time or '-' }}</td>
+          <td>
+            <form action="/manual_followup/{{ lead.id }}" method="post">
+              <button class="btn btn-sm btn-outline-primary" type="submit">Send Follow-up</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  (function() {
+    const log = document.getElementById('log');
+    function append(evt) {
+      const li = document.createElement('li');
+      const ts = new Date(evt.ts * 1000).toLocaleTimeString();
+      li.textContent = `[${ts}] ${evt.level.toUpperCase()} - ${evt.message}`;
+      log.appendChild(li);
+      log.scrollTop = log.scrollHeight;
+    }
+    const es = new EventSource('/events');
+    es.onmessage = (e) => {
+      try { append(JSON.parse(e.data)); } catch (_) {}
+    };
+  })();
+</script>
+{% endblock %}
+
+

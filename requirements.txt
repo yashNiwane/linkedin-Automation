@@ -1,0 +1,12 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.32
+APScheduler==3.10.4
+pandas==2.2.2
+openpyxl==3.1.5
+undetected-chromedriver==3.5.5
+selenium==4.23.1
+google-generativeai==0.7.2
+python-dotenv==1.0.1
+webdriver-manager==4.0.2
+
