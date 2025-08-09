@@ -1,44 +1,57 @@
-LinkedIn Auto Outreach (Flask + Gemini)
+# LinkedIn Auto Outreach Bot
 
-A full-stack Flask app that imports leads from Excel, automates personalized LinkedIn messaging using Gemini, monitors replies, and sends follow-ups. Data is persisted in SQLite with conversation memory.
+## Overview
+Automated LinkedIn messaging system with AI-powered personalization using Google Gemini. Handles lead import, message sending, reply monitoring, and auto-responses.
 
-Features
-- Upload Excel leads (columns: name, profile url, role, company, email, phone)
-- Generate first messages and follow-ups via Gemini
-- Automate LinkedIn sending via undetected-chromedriver (Selenium)
-- Monitor inbox and auto-reply using AI
-- Classify replies (interested / not interested / unsure)
-- Export enriched leads to Excel
+## Features
+- **Lead Management**: Import from Excel, export enriched data
+- **AI Messaging**: Gemini-powered personalized messages and replies
+- **Auto-Reply**: Monitors inbox and responds to prospects automatically
+- **Conversation Tracking**: Maintains message history and context
+- **Real-time Dashboard**: Live activity monitoring with SSE
 
-Stack
-- Flask, SQLAlchemy (SQLite)
-- APScheduler background jobs
-- Selenium (undetected-chromedriver)
-- google-generativeai (Gemini)
-- Bootstrap templates
+## Tech Stack
+- **Backend**: Flask + SQLAlchemy (SQLite)
+- **AI**: Google Gemini API
+- **Automation**: Selenium + undetected-chromedriver
+- **Scheduling**: APScheduler
+- **Frontend**: Bootstrap + Server-Sent Events
 
-Setup
-1. Python 3.11+
-2. Install dependencies: `pip install -r requirements.txt`
-3. Create `.env` with:
-   - SECRET_KEY=change-me
-   - GEMINI_API_KEY=your_api_key
-   - SELENIUM_HEADLESS=true
-   - SELENIUM_PROFILE_DIR=selenium_profile
-   - JOB_CHECK_INBOX_INTERVAL_MIN=10
-   - JOB_FOLLOWUP_INTERVAL_MIN=30
-   - FOLLOWUP_AFTER_HOURS=24
-4. Run: `python app.py` then open http://localhost:5000
+## Setup
+1. Install dependencies: `pip install -r requirements.txt`
+2. Configure `.env`:
+   ```
+SECRET_KEY=
+GEMINI_API_KEY=
+SELENIUM_HEADLESS=false
+SELENIUM_PROFILE_DIR=C:\chrome_profile
+JOB_CHECK_INBOX_INTERVAL_MIN=10
+JOB_FOLLOWUP_INTERVAL_MIN=30
+FOLLOWUP_AFTER_HOURS=24
+   ```
+3. Run: `python app.py`
 
-LinkedIn Login
-- Use the login form to store a session. If MFA prompts, set headless to false and login once; the session persists in `SELENIUM_PROFILE_DIR`.
+## Usage
+1. **Login**: Store LinkedIn session via web interface
+2. **Import**: Upload Excel with leads (name, profile_url, role, company, email, phone)
+3. **Send**: Trigger first messages to all leads
+4. **Monitor**: Bot automatically replies to incoming messages
+5. **Export**: Download results with engagement metrics
 
-Excel Format
-Required columns (case-insensitive): name, profile url, role, company, email, phone.
+## Key Components
+- `linkedin_service.py`: LinkedIn automation & message detection
+- `gemini_service.py`: AI message generation & classification
+- `scheduler_service.py`: Background jobs for inbox monitoring
+- `excel_service.py`: Lead import/export functionality
 
-Notes
-- LinkedIn UI may change; selectors might require updates.
-- Inbox-to-lead correlation is naive; map thread IDs for production use.
-- Respect LinkedIn ToS and rate limits.
+## Message Detection
+Uses reliable methods instead of CSS classes:
+- Profile picture presence detection
+- Data attribute analysis (`data-event-urn`)
+- Message structure validation
 
-"# linkedin-Automation" 
+## Workflow
+1. **Import** → **AI Generate** → **Send Messages**
+2. **Monitor Inbox** (30s intervals) → **Detect Replies**
+3. **AI Classify** → **Generate Response** → **Send Reply**
+4. **Track Conversations** → **Export Results**
