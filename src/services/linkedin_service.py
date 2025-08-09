@@ -399,15 +399,25 @@ class LinkedInAutomation:
             if messages:
                 last_message = messages[-1]
                 
-                # Method 1: Check for profile picture (incoming messages have profile pics)
-                profile_pics = last_message.find_elements(By.CSS_SELECTOR, "img[alt*='profile'], img.msg-s-event-listitem__profile-picture")
-                if profile_pics:
+                # Method 1: Check if message has "other" class or profile picture from other person
+                classes = last_message.get_attribute("class") or ""
+                if "other" in classes:
                     is_incoming = True
                 else:
-                    # Method 2: Check data-event-urn for sender info
-                    urn = last_message.get_attribute("data-event-urn") or ""
-                    # If URN exists and doesn't contain our profile, it's incoming
-                    is_incoming = bool(urn and "fsd_profile" in urn)
+                    # Method 2: Check for profile picture that's NOT ours
+                    profile_pics = last_message.find_elements(By.CSS_SELECTOR, "img.msg-s-event-listitem__profile-picture")
+                    if profile_pics:
+                        # Get the profile link to check if it's not our profile
+                        profile_links = last_message.find_elements(By.CSS_SELECTOR, "a.msg-s-event-listitem__link")
+                        if profile_links:
+                            href = profile_links[0].get_attribute("href") or ""
+                            # If it's a different profile URL, it's incoming
+                            is_incoming = bool(href and "/in/" in href)
+                        else:
+                            is_incoming = True
+                    else:
+                        # No profile picture usually means it's our message
+                        is_incoming = False
                 
                 # Extract message text
                 text_selectors = [
